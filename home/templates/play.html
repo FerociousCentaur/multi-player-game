@@ -5,7 +5,8 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js">
+      </script>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
         integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
@@ -276,7 +277,7 @@
 <body class="bg-dark">
 
     <div class="full-page" id="full-page">
-
+        {{room_code}}
         <div class="game flex-column">
             <div class="scoreboard">
                 <div class="player1">Player 1: 0</div>
@@ -299,13 +300,69 @@
         </div>
     </div>
 
+    <div class="players" id="players">
 
+    </div>
+    <button onclick="myFunc();">Close</button>
 
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 
 
     <script>
+
+    gameHastStarted = true;
+
+   function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+   }
+   async function StartGame() {
+      console.log("fething players");
+      while(gameHastStarted) {
+         await sleep(3000);
+         $.ajax({
+        type: 'POST',
+        url: '{% url 'get_players' %}',
+        data: {
+                   "room_code": "{{room_code}}",
+        },
+        dataType: 'json',
+        success: function (data) {
+
+            if(data.closed){
+                gameHastStarted = false;
+            }
+            else{
+                players = JSON.parse(data.data);
+                   html = "";
+                for (let i=0;i < players.length;i++){
+                    html += "<p style='color:white'>"+ players[i]["fields"]["name"] +"</p>"
+                    console.log(players[i]["fields"]["name"]);
+                }
+                console.log(html);
+                $( '#players' ).html(html);
+            }
+
+        }
+      });
+      }
+   }
+   StartGame();
+
+
+    function myFunc(){
+        $.ajax({
+        type: 'POST',
+        url: '{% url 'close_room' %}',
+        data: {
+                    "room_code": "{{room_code}}",
+        },
+        dataType: 'json',
+        success: function (data) {
+            console.log(data.message);
+        }
+      });
+    }
 
         var room_code = '{{room_code}}'
         var username = '{{username}}'
@@ -406,12 +463,15 @@
 
 
 
+
+
+
         socket.onopen = function (e){
             console.log('Socket connected')
         }
 
         socket.onmessage = function (e){
-            var data = JSON.parse(e.data)
+            var data = JSON.parse(e.data);
             console.log(data)
             if(data.payload.type == 'end' && data.payload.player !== player){
                 swal("Sorry!" , "You lost" , "error")

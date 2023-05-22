@@ -9,12 +9,30 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
         integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js">
+      </script>
     <title>Hello, world!</title>
 </head>
 
 <body class="bg-dark">
+<script>
 
+    function checkSelectedValue(){
+    var card = document.getElementsByName("option")[0].value;
+    console.log(card);
+    if (card == 0) {
+        $("#form_pregame").children("#room_code_entry").remove();
+    }
+    else if(card == 1){
+        html = '<div class="col-md-12 form-group" id="room_code_entry"><label class="text-white">Enter Room Code</label><input type="text" name="room_code" class="form-control"></div>'
+          console.log("called2");
+        $("#form_pregame").append(html);
+    }
+    else{
+        $("#form_pregame").children("#room_code_entry").remove();
+    }
+    }
+</script>
 
     <div class="container mt-5 pt-5 ">
         <h3 class="text-center text-white">PLAY TIC TAC</h3>
@@ -28,7 +46,7 @@
             {% endif %}
             <form method="post">
                 {% csrf_token %}
-                <div class="row">
+                <div class="row" id="form_pregame">
                     <div class="col-md-12 form-group">
                         <label class="text-white">Enter user name</label>
                         <input type="text" name="username" class="form-control">
@@ -37,18 +55,15 @@
                     <div class="col-md-12 form-group">
                         <label class="text-white">Choose Option</label>
 
-                        <select class="form-control" name="option">
-                            <option>Choose</option>
+                        <select class="form-control" name="option" id='option' onchange="checkSelectedValue();">
+                            <option value="0">Choose</option>
                             <option value="1">Have room Code</option>
-                            <option value="2">Create room Code</option>
+                            <option value="2">Create room</option>
 
                         </select>
                     </div>
 
-                    <div class="col-md-12 form-group">
-                        <label class="text-white">Enter Room Code</label>
-                        <input type="text" name="room_code" class="form-control">
-                    </div>
+
                 </div>
                 <button type="submit" class="btn btn-light">Start Game</button>
 

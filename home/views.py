@@ -12,9 +12,10 @@ def home(request):
     if request.method == "POST":
         username = request.POST.get('username')
         option = request.POST.get('option')
-        room_code = request.POST.get('room_code')
-        print(room_code)
+        #room_code = request.POST.get('room_code')
+        #print(room_code)
         if option == '1':
+            room_code = request.POST.get('room_code')
             game = Game.objects.filter(room_code=room_code).first()
 
             if game is None:
@@ -36,11 +37,11 @@ def home(request):
         else:
             user = Profile(name=username)
             user.save()
-            game = Game(game_creator=username, room_code=room_code)
+            game = Game(game_creator=username)
             game.save()
             game.players.add(user)
             game.save()
-            return redirect('/play/' + room_code + '?username=' + username)
+            return redirect('/play/' + game.room_code + '?username=' + username)
 
     return render(request, 'home.html')
 

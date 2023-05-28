@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 <html lang="en">
 
@@ -8,8 +9,7 @@
  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js">
       </script>
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
     <title>Play | {{room_code}}</title>
 
@@ -35,40 +35,54 @@
     border-radius: 50%;
     //background-color: red;
     font-size: 12px;
+
 }
+
+.cc-selector input{
+    margin:0;padding:0;
+    -webkit-appearance:none;
+       -moz-appearance:none;
+            appearance:none;
+}
+
+.mastercard{background-image:url();}
+
+.cc-selector input:active +.drinkcard-cc{opacity: .9;}
+.cc-selector input:checked +.drinkcard-cc{
+    -webkit-filter: none;
+       -moz-filter: none;
+            filter: none;
+}
+.drinkcard-cc{
+    cursor:pointer;
+    display:inline-block;
+    width:100px;height:70px;
+    -webkit-transition: all 100ms ease-in;
+       -moz-transition: all 100ms ease-in;
+            transition: all 100ms ease-in;
+    -webkit-filter: brightness(1.8) grayscale(1) opacity(.7);
+       -moz-filter: brightness(1.8) grayscale(1) opacity(.7);
+            filter: brightness(1.8) grayscale(1) opacity(.7);
+}
+.drinkcard-cc:hover{
+    -webkit-filter: brightness(1.2) grayscale(.5) opacity(.9);
+       -moz-filter: brightness(1.2) grayscale(.5) opacity(.9);
+            filter: brightness(1.2) grayscale(.5) opacity(.9);
+}
+
 </style>
 
 <body class="bg-dark">
 
 <div class='back' style="margin-top:100px"></div>
-<!--    <div class="full-page" id="full-page">-->
-<!--        {{room_code}}-->
-<!--        <div class="game flex-column">-->
-<!--            <div class="scoreboard">-->
-<!--                <div class="player1">Player 1: 0</div>-->
-<!--                <div class="player2">Player 2: 0</div>-->
-<!--            </div>-->
-<!--            <div class="boardcontainer">-->
-<!--                <div class="board">-->
-<!--                    <div data-cell-index="0" class="space"></div>-->
-<!--                    <div data-cell-index="1" class="space"></div>-->
-<!--                    <div data-cell-index="2" class="space"></div>-->
-<!--                    <div data-cell-index="3" class="space"></div>-->
-<!--                    <div data-cell-index="4" class="space"></div>-->
-<!--                    <div data-cell-index="5" class="space"></div>-->
-<!--                    <div data-cell-index="6" class="space"></div>-->
-<!--                    <div data-cell-index="7" class="space"></div>-->
-<!--                    <div data-cell-index="8" class="space"></div>-->
 
-<!--                </div>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
+<div class="cc-selector d-flex align-items-center justify-content-center mt-5" id="card_holder">
 
-<!--    <div class="players" id="players">-->
-
-<!--    </div>-->
+<!--    <img src="{% static 'img/Club_1.jpg' %}" alt="image" style="height:50px;margin-left:50px">-->
+</div>
     {% if creator %}<button onclick="myFunc();">Start Game</button> {% endif %}
+{% if creator %}<button onclick="Shuffle();">Shuffle & Distribute</button> {% endif %}
+<button onclick="GetCards();">Get Cards</button>
 
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 <script defer src="https://use.fontawesome.com/releases/v5.11.2/js/all.js"></script>
@@ -177,6 +191,49 @@ function addDots(players){
         }
       });
     }
+
+    function Shuffle(){
+        $.ajax({
+        type: 'POST',
+        url: '{% url 'shuffle' %}',
+        data: {
+                    "room_code": "{{room_code}}",
+                    "uid" : "{{uid}}"
+        },
+        dataType: 'json',
+        success: function (data) {
+            console.log(data.status);
+        }
+      });
+    }
+
+    function GetCards(){
+        $.ajax({
+        type: 'POST',
+        url: '{% url 'get_cards' %}',
+        data: {
+                    "room_code": "{{room_code}}",
+                    "uid" : "{{uid}}"
+        },
+        dataType: 'json',
+        success: function (data) {
+            for(let i=0;i<data.player_cards.length;i++){
+
+                var uniq = 'id' + (new Date()).getTime();
+
+                 var one_card = '<input type="checkbox" name=' + uniq + ' id='+ uniq +'><label class="drinkcard-cc" for='+ uniq+'><img src="/static/img/'+data.player_cards[i]+'.jpg" alt="card image" style="height:50px;margin-left:10px"/></label>'
+
+                $('#card_holder').append(one_card);
+                console.log(data.player_cards[i]);
+            }
+
+
+            console.log(data.player_cards);
+            console.log(data.unfolded_cards);
+        }
+      });
+    }
+
 
         var room_code = '{{room_code}}'
         var username = '{{username}}'
@@ -308,7 +365,8 @@ function addDots(players){
 
     </script>
 
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
 
 

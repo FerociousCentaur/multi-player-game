@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js">
       </script>
+    <script src="{% static 'js/utils.js' %}"></script>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
@@ -60,21 +61,28 @@
     -webkit-transition: all 100ms ease-in;
        -moz-transition: all 100ms ease-in;
             transition: all 100ms ease-in;
-    -webkit-filter: brightness(1.8) grayscale(1) opacity(.7);
-       -moz-filter: brightness(1.8) grayscale(1) opacity(.7);
-            filter: brightness(1.8) grayscale(1) opacity(.7);
+    -webkit-filter: brightness(1) grayscale(0.2) opacity(.7);
+       -moz-filter: brightness(1) grayscale(0.2) opacity(.7);
+            filter: brightness(1) grayscale(0.2) opacity(.7);
 }
 .drinkcard-cc:hover{
-    -webkit-filter: brightness(1.2) grayscale(.5) opacity(.9);
-       -moz-filter: brightness(1.2) grayscale(.5) opacity(.9);
-            filter: brightness(1.2) grayscale(.5) opacity(.9);
+    -webkit-filter: brightness(1.8) grayscale(.0) opacity(.9);
+       -moz-filter: brightness(1.8) grayscale(.0) opacity(.9);
+            filter: brightness(1.8) grayscale(.0) opacity(.9);
+}
+
+.table-card-holder{
+        position: absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%, -50%);
 }
 
 </style>
 
 <body class="bg-dark">
 
-<div class='back' style="margin-top:100px"></div>
+<div class='back' style="margin-top:100px"><div class="table-card-holder cc-selector"></div></div>
 
 <div class="cc-selector d-flex align-items-center justify-content-center mt-5" id="card_holder">
 
@@ -83,23 +91,70 @@
     {% if creator %}<button onclick="myFunc();">Start Game</button> {% endif %}
 {% if creator %}<button onclick="Shuffle();">Shuffle & Distribute</button> {% endif %}
 <button onclick="GetCards();">Get Cards</button>
-
+<button id='play' onclick="PlayChance();">Play Chance</button>
+<button id='pass' onclick="Pass();">Pass</button>
+<button onclick="DecideFirstPlayer();">Decide 1st Player</button>
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 <script defer src="https://use.fontawesome.com/releases/v5.11.2/js/all.js"></script>
 
 
     <script>
+$("#pass").hide();
+   $("#play").hide();
 
-    function arrayRotate(arr, count) {
+
+
+ function nextOrFirst(elem,selector)
+    {
+      var next = elem.next(selector);
+
+      return (next.length) ? next : elem.prevAll(selector).last();
+    };
+
+function activatePlayer(uid) {
+    console.log(uid);
+    data = {type:'chance','current_player':uid}
+    socket.send(JSON.stringify({data}));
+}
+
+function Pass(){
+
+   ancestor = $('svg[data-unique-id="{{uid}}"]');
+   console.log(ancestor.parent().parent());
+   $("#pass").hide();
+   $("#play").hide();
+   next = nextOrFirst(ancestor.parent().parent(),'.front');
+   elem = next.find('svg');
+   uid = elem.attr("data-unique-id");
+   activatePlayer(uid);
+
+}
+
+
+function DecideFirstPlayer(){
+$.ajax({
+        type: 'POST',
+        url: '{% url "first_player" %}',
+        data: {
+                    "room_code": "{{room_code}}"
+        },
+        dataType: 'json',
+        success: function (data) {
+            activatePlayer(data.uid);
+        }
+      });
+}
+
+ function arrayRotate(arr, count) {
       const len = arr.length
       arr.push(...arr.splice(0, (-count % len + len) % len))
       return arr
     }
 
 
-    gameHastStarted = true;
+gameHastStarted = true;
 function addDots(players){
-    $('.back').html("");
+    $('.back').children().not(':first').remove();
      var N = players.length;
     var x = new Array(N);
         let idx = 0;
@@ -128,11 +183,12 @@ function addDots(players){
                  textAlign:"center",
             });
             var randomColor = '#'+ ('000000' + Math.floor(Math.random()*16777215).toString(16)).slice(-6);
-            s.append('<span style="font-size: 24px; color:'+randomColor+'"'+'><i class="fas fa-user fa-lg"></i></span>');
-            s.append('<p>'+x[iter][0]+'</p>');
+            s.append('<span style="font-size: 24px; color:'+randomColor+'"'+'><i data-unique-id="' +x[iter][1] +'" class="fas fa-user fa-lg"></i></span>');
+            s.append('<p data-unique-id="' + x[iter][1]+'" >'+x[iter][0]+'</p>');
             //console.log(s);
             iter++;
             $('.back').append(s);
+            //fa-spin
         }
 
 
@@ -140,14 +196,20 @@ function addDots(players){
    function sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
    }
-   async function StartGame() {
+
+
+
+
+
+
+async function StartGame() {
       console.log("fething players");
       while(gameHastStarted) {
          await sleep(3000);
          $.ajax({
         type: 'POST',
          async: false,
-        url: '{% url 'get_players' %}',
+        url: '{% url "get_players" %}',
         data: {
                    "room_code": "{{room_code}}",
         },
@@ -172,7 +234,7 @@ function addDots(players){
       });
       }
    }
-   StartGame();
+
 
 
 
@@ -180,7 +242,7 @@ function addDots(players){
     function myFunc(){
         $.ajax({
         type: 'POST',
-        url: '{% url 'close_room' %}',
+        url: '{% url "close_room" %}',
         data: {
                     "room_code": "{{room_code}}",
                     "uid" : "{{uid}}"
@@ -195,7 +257,7 @@ function addDots(players){
     function Shuffle(){
         $.ajax({
         type: 'POST',
-        url: '{% url 'shuffle' %}',
+        url: '{% url "shuffle" %}',
         data: {
                     "room_code": "{{room_code}}",
                     "uid" : "{{uid}}"
@@ -207,10 +269,28 @@ function addDots(players){
       });
     }
 
+
+    function PlaceTableCards(unfolded_cards){
+        console.log('inside Place');
+
+         $('.table-card-holder').html("");
+        for(let i=0;i<unfolded_cards.length;i++){
+                var uniq = 'idtcu' + i;
+                var one_card = '<input type="radio" name="table_cards" value="'+ unfolded_cards[i] + '" id='+ uniq +'><label class="drinkcard-cc" for='+ uniq+'><img src="/static/img/'+unfolded_cards[i]+'.jpg" alt="card image" style="height:50px;margin-left:10px"/></label>'
+                $('.table-card-holder').append(one_card);
+            }
+            var uniq = 'idtcf';
+            var folded = '<input type="radio" name="table_cards" value="folded"'  + ' id='+ uniq +'><label class="drinkcard-cc" for='+ uniq+'><img src="/static/img/folded.jpg" alt="card image" style="height:50px;margin-left:10px"/></label>'
+            $('.table-card-holder').append(folded);
+
+    }
+
     function GetCards(){
+        //e.preventDefault();
+
         $.ajax({
         type: 'POST',
-        url: '{% url 'get_cards' %}',
+        url: '{% url "get_cards" %}',
         data: {
                     "room_code": "{{room_code}}",
                     "uid" : "{{uid}}"
@@ -219,20 +299,91 @@ function addDots(players){
         success: function (data) {
             for(let i=0;i<data.player_cards.length;i++){
 
-                var uniq = 'id' + (new Date()).getTime();
+                var uniq = 'idpc' + i;
 
-                 var one_card = '<input type="checkbox" name=' + uniq + ' id='+ uniq +'><label class="drinkcard-cc" for='+ uniq+'><img src="/static/img/'+data.player_cards[i]+'.jpg" alt="card image" style="height:50px;margin-left:10px"/></label>'
+                var one_card = '<input type="checkbox" name="player_cards" value="'+ data.player_cards[i] + '" id='+ uniq +'><label class="drinkcard-cc" for='+ uniq+'><img src="/static/img/'+data.player_cards[i]+'.jpg" alt="card image" style="height:50px;margin-left:10px"/></label>'
 
                 $('#card_holder').append(one_card);
                 console.log(data.player_cards[i]);
             }
 
+            PlaceTableCards(data.unfolded_cards);
 
             console.log(data.player_cards);
             console.log(data.unfolded_cards);
         }
       });
     }
+
+
+
+
+
+
+
+
+   StartGame();
+
+    function deleteAndAdd(selectedCards, pickedCard){
+        console.log('inside delete',selectedCards,pickedCard);
+        for(let i=0;i<selectedCards.length;i++){
+            elem = $('input[name="player_cards"][value="'+selectedCards[i]+'"]')
+            elemId = elem.attr('id');
+            console.log(elemId);
+            elem.remove();
+            elemLabel = $('label[for="'+elemId+'"]')
+            elemLabel.remove();
+
+        }
+        var uniq = elemId;
+
+        var one_card = '<input type="checkbox" name="player_cards" value="'+ pickedCard + '" id='+ uniq +'><label class="drinkcard-cc" for='+ uniq+'><img src="/static/img/'+pickedCard+'.jpg" alt="card image" style="height:50px;margin-left:10px"/></label>'
+
+        $('#card_holder').append(one_card);
+
+    }
+
+
+
+   function PlayChance(){
+        let checkedRadioboxesValues = $('input[name="table_cards"]:checked').val();
+        var checkedCheckboxesValues =
+    $('input:checkbox[name="player_cards"]:checked')
+        .map(function() {
+            return $(this).val();
+        }).get();
+        //console.log(checkedRadioboxesValues);
+        //console.log(checkedCheckboxesValues);
+        //PlaceTableCards(checkedCheckboxesValues);
+        let folded = false;
+        let picked = checkedRadioboxesValues;
+        if(checkedRadioboxesValues==='folded'){
+            folded = true;
+        }
+
+        $.ajax({
+        type: 'POST',
+        url: '{% url "play_chance" %}',
+        data: {
+                    "room_code": "{{room_code}}",
+                    "uid" : "{{uid}}",
+                    "played": checkedCheckboxesValues,
+                    "folded" : folded,
+                    "picked" : picked
+        },
+        dataType: 'json',
+        success: function (data) {
+            // to change the cards for this player
+            deleteAndAdd(checkedCheckboxesValues,data.picked);
+            var data = {'type' : 'played','unfolded_cards': checkedCheckboxesValues}
+            socket.send(JSON.stringify({data}));
+        }
+      });
+
+   }
+
+
+
 
 
         var room_code = '{{room_code}}'
@@ -344,10 +495,22 @@ function addDots(players){
         socket.onmessage = function (e){
             var data = JSON.parse(e.data);
             console.log(data)
-            if(data.payload.type == 'end' && data.payload.player !== player){
-                swal("Sorry!" , "You lost" , "error")
-            }else if(data.payload.type == 'over'){
-                swal("Game over!" , "Game end no one won" , "warning")
+            if(data.payload.type == 'played'){
+                PlaceTableCards(data.payload.unfolded_cards);
+                return;
+            }else if(data.payload.type == 'chance'){
+                console.log(data.payload);
+                current_player = data.payload.current_player
+                if("{{uid}}"==current_player){
+                    $("#pass").show();
+                    $("#play").show();
+                }
+                $("svg").removeClass("fa-spin");
+                ancestor = $('svg[data-unique-id="'+current_player+'"]');
+
+                ancestor.addClass("fa-spin");
+
+                //swal("Game over!" , "Game end no one won" , "warning")
                 return;
             }else if(data.payload.type == 'running' &&  data.payload.player !== player){
                 setAnotherUserText(data.payload.index , data.payload.player)

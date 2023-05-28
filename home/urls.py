@@ -13,4 +13,5 @@ urlpatterns = [
     path('shuffle', shuffle, name="shuffle"),
     path('play_chance', play_chance, name="play_chance"),
     path('get_cards', get_cards, name="get_cards"),
+    path('first_player', first_player, name="first_player"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

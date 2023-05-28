@@ -73,6 +73,17 @@ def close_room(request):
     return JsonResponse(data)
 
 
+@csrf_exempt
+def first_player(request):
+    room_code = request.POST.get("room_code")
+    game = Game.objects.get(room_code=room_code)
+    players = game.players.all()
+    li = []
+    for player in players:
+        li.append(player.uid)
+    fp = random.choice(li)
+    return JsonResponse({"uid": fp})
+
 def shuffler(game_cards):
     random.shuffle(game_cards)
 
@@ -128,10 +139,10 @@ def play_chance(request):
     #     type: 'POST',
     #     data: {'arr': arr},
     # });
-    played_cards = data.get('played[]', None)
-    res = filter(lambda i: i not in played_cards, eval(player.cards))
+    played_cards = data.getlist('played[]', None)
+    res = list(filter(lambda i: i not in played_cards, eval(player.cards)))
     folded = data.get('folded', None)
-    if folded:
+    if folded=='true':
         f_cards = eval(game.folded_cards)
         picked = f_cards.pop()
         game.folded_cards = f_cards
@@ -147,7 +158,7 @@ def play_chance(request):
         player.save()
         game.unfolded_cards = played_cards
         game.save()
-    return JsonResponse({"status": "Done"})
+    return JsonResponse({"picked": picked})
 
 
 

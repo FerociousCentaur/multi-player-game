@@ -17,7 +17,7 @@ iamond_4', 'Diamond_5', 'Diamond_6', 'Diamond_7', 'Diamond_8', 'Diamond_9', 'Hea
          'Spade_1', 'Spade_10', 'Spade_11', 'Spade_12', 'Spade_13', 'Spade_2', 'Spade_3', 'Spade_4', 'Spade_5',
          'Spade_6', 'Spade_7', 'Spade_8', 'Spade_9']
 
-
+@csrf_exempt
 def home(request):
     if request.method == "POST":
         username = request.POST.get('username')
@@ -162,7 +162,7 @@ def play_chance(request):
 
 
 
-
+@csrf_exempt
 def play(request, room_code):
     uid = request.GET.get('uid')
     creator = False

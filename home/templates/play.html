@@ -111,9 +111,9 @@ $("#pass").hide();
       return (next.length) ? next : elem.prevAll(selector).last();
     };
 
-function activatePlayer(uid) {
+function activatePlayer(uid,first) {
     console.log(uid);
-    data = {type:'chance','current_player':uid}
+    data = {type:'chance','current_player':uid,"first":first}
     socket.send(JSON.stringify({data}));
 }
 
@@ -126,7 +126,7 @@ function Pass(){
    next = nextOrFirst(ancestor.parent().parent(),'.front');
    elem = next.find('svg');
    uid = elem.attr("data-unique-id");
-   activatePlayer(uid);
+   activatePlayer(uid,"second");
 
 }
 
@@ -140,7 +140,7 @@ $.ajax({
         },
         dataType: 'json',
         success: function (data) {
-            activatePlayer(data.uid);
+            activatePlayer(data.uid,"first");
         }
       });
 }
@@ -505,7 +505,10 @@ async function StartGame() {
                     $("#pass").show();
                     $("#play").show();
                 }
-                $("svg").removeClass("fa-spin");
+                if(data.payload.first != "first"){
+                    $("svg").removeClass("fa-spin");
+                }
+
                 ancestor = $('svg[data-unique-id="'+current_player+'"]');
 
                 ancestor.addClass("fa-spin");

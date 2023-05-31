@@ -47,7 +47,7 @@ def home(request):
         else:
             user = Profile.objects.create(name=username, uid=str(uuid.uuid4())[:7])
             uid = user.uid
-            game = Game.objects.create(game_creator=uid, room_code=str(uuid.uuid4())[:7], folded_cards=cards)
+            game = Game.objects.create(game_creator=uid, room_code=str(uuid.uuid4())[:7])
             game.players.add(user)
             game.save()
             return redirect('/play/' + game.room_code + '?uid=' + uid)
@@ -60,7 +60,9 @@ def close_room(request):
     room_code = request.POST.get("room_code")
     uid = request.POST.get("uid")
     game = Game.objects.get(room_code=room_code)
+    game.folded_cards = 2*cards
     if game.is_in_progress:
+        game.save()
         data = {"message": "Already cloased"}
         return JsonResponse(data)
     elif uid == game.game_creator:
@@ -96,7 +98,7 @@ def shuffle(request):
     game = Game.objects.get(room_code=room_code)
     if not game.is_in_progress:
         return JsonResponse({"status": "First close the room"})
-    game_cards = cards#eval(game.folded_cards)
+    game_cards = 2*cards#eval(game.folded_cards)
     shuffler(game_cards)
     players = game.players.all()
     itera = 0

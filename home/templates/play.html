@@ -6,11 +6,13 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js">
-      </script>
-    <script src="{% static 'js/utils.js' %}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js">
+    </script>
+
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="{% static 'js/helper.js' %}"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
     <title>Play | {{room_code}}</title>
 
@@ -78,29 +80,60 @@
       transform:translate(-50%, -50%);
 }
 
+
 </style>
 
 <body class="bg-dark">
 
-<div class='back' style="margin-top:100px"><div class="table-card-holder cc-selector"></div></div>
+
+<!--<div class="score-board">-->
+<!--    <table>-->
+<!--        <tr>-->
+<!--            <th>Company</th>-->
+<!--            <th>Contact</th>-->
+<!--            <th>Country</th>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--            <td>Alfreds Futterkiste</td>-->
+<!--        </tr>-->
+<!--    </table>-->
+<!--</div>-->
+<div class='back' style="margin-top:100px">
+    <div class="table-card-holder cc-selector"></div>
+</div>
 
 <div class="cc-selector d-flex align-items-center justify-content-center mt-5" id="card_holder">
 
-<!--    <img src="{% static 'img/Club_1.jpg' %}" alt="image" style="height:50px;margin-left:50px">-->
+    <!--    <img src="{% static 'img/Club_1.jpg' %}" alt="image" style="height:50px;margin-left:50px">-->
 </div>
-    {% if creator %}<button onclick="myFunc();">Start Game</button> {% endif %}
-{% if creator %}<button onclick="Shuffle();">Shuffle & Distribute</button> {% endif %}
-<button onclick="GetCards();">Get Cards</button>
+{% if creator %}
+<button id="start" onclick="myFunc();">Start Game</button>
+{% endif %}
+{% if creator %}
+<button id="shuffle" onclick="Shuffle();">Shuffle & Distribute</button>
+{% endif %}
+<button id="getcards" onclick="GetCards();">Get Cards</button>
 <button id='play' onclick="PlayChance();">Play Chance</button>
 <button id='pass' onclick="Pass();">Pass</button>
-<button onclick="DecideFirstPlayer();">Decide 1st Player</button>
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<button id='declare' onclick="Declare();">Declare</button>
+<button id="decide" onclick="DecideFirstPlayer();">Decide 1st Player</button>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 <script defer src="https://use.fontawesome.com/releases/v5.11.2/js/all.js"></script>
 
 
-    <script>
+<script>
+
+console.log('{{request.site.domain}}',' {{request.site.name}}')
+
 $("#pass").hide();
    $("#play").hide();
+$("#getcards").hide();
+$("#declare").hide();
+if("{{creator}}"=="True"){
+    $("#shuffle").hide();
+}
+
+$("#decide").hide();
 
 
 
@@ -128,6 +161,13 @@ function Pass(){
    uid = elem.attr("data-unique-id");
    activatePlayer(uid,"second");
 
+
+   if(declaredGame && declaredUID==uid){
+            data = {"type":"Showscore"}
+            socket.send(JSON.stringify({data}))
+            return;
+   }
+
 }
 
 
@@ -141,6 +181,8 @@ $.ajax({
         dataType: 'json',
         success: function (data) {
             activatePlayer(data.uid,"first");
+            data = {"type":"hide","button": "decide"}
+            socket.send(JSON.stringify({data}))
         }
       });
 }
@@ -153,6 +195,9 @@ $.ajax({
 
 
 gameHastStarted = true;
+declaredGame = false;
+declaredUID = "";
+
 function addDots(players){
     $('.back').children().not(':first').remove();
      var N = players.length;
@@ -169,7 +214,7 @@ function addDots(players){
         arrayRotate(x,N-idx);
 
 
-       var pi = Math.PI, backR = 200, frontR = 30, radius = 150;
+       var pi = Math.PI, backR = 250, frontR = 30, radius = 180;
 
         $('.back').width(backR * 2).height(backR * 2);
         let iter =0;
@@ -240,6 +285,10 @@ async function StartGame() {
 
 
     function myFunc(){
+
+        if ($(".score-card").length){ $(".score-card").remove(); }
+
+        $("#start").hide();
         $.ajax({
         type: 'POST',
         url: '{% url "close_room" %}',
@@ -250,6 +299,8 @@ async function StartGame() {
         dataType: 'json',
         success: function (data) {
             console.log(data.message);
+
+            $("#shuffle").show();
         }
       });
     }
@@ -265,8 +316,17 @@ async function StartGame() {
         dataType: 'json',
         success: function (data) {
             console.log(data.status);
+            $("#shuffle").hide();
+            data = {"type": "show", "button": "decide" }
+            socket.send(JSON.stringify({data}));
         }
       });
+    }
+
+    function Declare(){
+         data = {"type": "declare", "uid": "{{uid}}" }
+        socket.send(JSON.stringify({data}));
+        Pass();
     }
 
 
@@ -287,6 +347,8 @@ async function StartGame() {
 
     function GetCards(){
         //e.preventDefault();
+        $('#card_holder').html("");
+
 
         $.ajax({
         type: 'POST',
@@ -317,6 +379,24 @@ async function StartGame() {
 
 
 
+function checkDeclare(){
+var selected =
+    $('input:checkbox[name="player_cards"]')
+        .map(function() {
+            return $(this).val();
+        }).get();
+    let selectedArr = new Array(selected.length);
+    let sumV = 0;
+    for(let i=0;i<selected.length;i++){
+        selectedArr[i] = selected[i].split("_")
+        selectedArr[i][1] = parseInt(selectedArr[i][1])
+        sumV+= selectedArr[i][1];
+    }
+    if(sumV<=10){
+        $("#declare").show();
+    }
+
+}
 
 
 
@@ -343,18 +423,46 @@ async function StartGame() {
 
     }
 
+function ShowCards(){
+    var selected =
+    $('input:checkbox[name="player_cards"]')
+        .map(function() {
+            return $(this).val();
+        }).get();
 
+        let selectedArr = new Array(selected.length);
+    let sumV = 0;
+    for(let i=0;i<selected.length;i++){
+        selectedArr[i] = selected[i].split("_")
+        selectedArr[i][1] = parseInt(selectedArr[i][1])
+        sumV+= selectedArr[i][1];
+    }
+    data = {"type":"score","uid": "{{uid}}", "score":sumV}
+    socket.send(JSON.stringify({data}))
+
+
+}
 
    function PlayChance(){
+
         let checkedRadioboxesValues = $('input[name="table_cards"]:checked').val();
+
         var checkedCheckboxesValues =
     $('input:checkbox[name="player_cards"]:checked')
         .map(function() {
             return $(this).val();
         }).get();
-        //console.log(checkedRadioboxesValues);
-        //console.log(checkedCheckboxesValues);
-        //PlaceTableCards(checkedCheckboxesValues);
+
+        if(checkedRadioboxesValues==undefined || checkedCheckboxesValues.length==0){
+            alert("Kya hag raha hai bhai!! Select toh kar le kahan se uthana hai");
+            return;
+        }
+
+        if(!verify(checkedCheckboxesValues)){
+            alert("Kya hag raha hai bhai!!");
+            return;
+        }
+
         let folded = false;
         let picked = checkedRadioboxesValues;
         if(checkedRadioboxesValues==='folded'){
@@ -375,12 +483,17 @@ async function StartGame() {
         success: function (data) {
             // to change the cards for this player
             deleteAndAdd(checkedCheckboxesValues,data.picked);
+            checkDeclare();
             var data = {'type' : 'played','unfolded_cards': checkedCheckboxesValues}
             socket.send(JSON.stringify({data}));
         }
       });
 
+
+
+
    }
+
 
 
 
@@ -390,7 +503,7 @@ async function StartGame() {
         var username = '{{username}}'
         var player = username.charAt(0)
 
-        let socket = new WebSocket('ws://localhost:8000/ws/game/' +room_code)
+        let socket = new WebSocket('wss://{{request.site.domain}}/ws/game/' +room_code)
 
         let gameState = ["","","","","","","","",""]
 
@@ -508,6 +621,9 @@ async function StartGame() {
                 if(data.payload.first != "first"){
                     $("svg").removeClass("fa-spin");
                 }
+                if(data.payload.first == "first"){
+                    $("#decide").hide();
+                }
 
                 ancestor = $('svg[data-unique-id="'+current_player+'"]');
 
@@ -518,6 +634,32 @@ async function StartGame() {
             }else if(data.payload.type == 'running' &&  data.payload.player !== player){
                 setAnotherUserText(data.payload.index , data.payload.player)
             }
+            else if(data.payload.type == 'show'){
+                $('#'+data.payload.button).show();
+            }
+            else if(data.payload.type == 'hide'){
+                $('#'+data.payload.button).hide();
+                $('#getcards').show();
+            }
+            else if(data.payload.type == 'declare'){
+                declaredGame = true;
+                declaredUID = data.payload.uid;
+                ancestor = $('p[data-unique-id='+data.payload.uid+']');
+                ancestor.parent().append('<p class="info"><b>Declared</b></p>');
+            }
+            else if(data.payload.type == 'Showscore'){
+                ShowCards();
+            }
+            else if(data.payload.type == 'score'){
+                $('.info').remove();
+                ancestor = $('p[data-unique-id='+data.payload.uid+']');
+                ancestor.parent().append('<p class="score-card"><b>'+data.payload.score+'</b></p>');
+                if("{{creator}}"=="True"){
+                    $('#start').show();
+                }
+            }
+
+
 
         
 
@@ -529,11 +671,15 @@ async function StartGame() {
 
 
 
-    </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
 
 
 </body>

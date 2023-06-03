@@ -113,7 +113,7 @@ function Pass(){
    next = nextOrFirst(ancestor.parent().parent(),'.front');
    elem = next.find('svg');
    uid = elem.attr("data-unique-id");
-   activatePlayer(uid,"second");
+
 
 
    if(declaredGame && declaredUID==uid){
@@ -121,6 +121,7 @@ function Pass(){
             socket.send(JSON.stringify({data}))
             return;
    }
+   activatePlayer(uid,"second");
 
 }
 

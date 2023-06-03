@@ -6,13 +6,17 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="{% static 'css/index.css' %}" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js">
     </script>
 
     <!-- Bootstrap CSS -->
     <script src="{% static 'js/helper.js' %}"></script>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<!--    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"-->
+<!--          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">-->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+<link href="{% static 'css/chat.css' %}" rel="stylesheet">
 
     <title>Play | {{room_code}}</title>
 
@@ -20,84 +24,15 @@
 </head>
 
 <style>
-    @import url("https://fonts.googleapis.com/css?family=Catamaran:200");
-    @import url("https://fonts.googleapis.com/css?family=Quicksand");
 
-
-    .back {
-    background-color: #919191;
-    border-radius: 50%;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-
-}
-
-.front {
-    position: absolute;
-    border-radius: 50%;
-    //background-color: red;
-    font-size: 12px;
-
-}
-
-.cc-selector input{
-    margin:0;padding:0;
-    -webkit-appearance:none;
-       -moz-appearance:none;
-            appearance:none;
-}
-
-.mastercard{background-image:url();}
-
-.cc-selector input:active +.drinkcard-cc{opacity: .9;}
-.cc-selector input:checked +.drinkcard-cc{
-    -webkit-filter: none;
-       -moz-filter: none;
-            filter: none;
-}
-.drinkcard-cc{
-    cursor:pointer;
-    display:inline-block;
-    width:100px;height:70px;
-    -webkit-transition: all 100ms ease-in;
-       -moz-transition: all 100ms ease-in;
-            transition: all 100ms ease-in;
-    -webkit-filter: brightness(1) grayscale(0.2) opacity(.7);
-       -moz-filter: brightness(1) grayscale(0.2) opacity(.7);
-            filter: brightness(1) grayscale(0.2) opacity(.7);
-}
-.drinkcard-cc:hover{
-    -webkit-filter: brightness(1.8) grayscale(.0) opacity(.9);
-       -moz-filter: brightness(1.8) grayscale(.0) opacity(.9);
-            filter: brightness(1.8) grayscale(.0) opacity(.9);
-}
-
-.table-card-holder{
-        position: absolute;
-      left:50%;
-      top:50%;
-      transform:translate(-50%, -50%);
-}
+.username {display:inline-block;margin-right:10px;}
+.self {display:inline-block;}
 
 
 </style>
 
 <body class="bg-dark">
 
-
-<!--<div class="score-board">-->
-<!--    <table>-->
-<!--        <tr>-->
-<!--            <th>Company</th>-->
-<!--            <th>Contact</th>-->
-<!--            <th>Country</th>-->
-<!--        </tr>-->
-<!--        <tr>-->
-<!--            <td>Alfreds Futterkiste</td>-->
-<!--        </tr>-->
-<!--    </table>-->
-<!--</div>-->
 <div class='back' style="margin-top:100px">
     <div class="table-card-holder cc-selector"></div>
 </div>
@@ -117,11 +52,30 @@
 <button id='pass' onclick="Pass();">Pass</button>
 <button id='declare' onclick="Declare();">Declare</button>
 <button id="decide" onclick="DecideFirstPlayer();">Decide 1st Player</button>
+{% include 'smileys.html' %}
+{% include 'chat.html' %}
+
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 <script defer src="https://use.fontawesome.com/releases/v5.11.2/js/all.js"></script>
+<script src="{% static 'js/pop1.js' %}"></script>
+<script src="{% static 'js/chat.js' %}"></script>
 
 
 <script>
+
+function sendSmiley(x){
+    console.log(x);
+    $('#staticBackdrop').modal('hide');
+    data = {'type':'smiley','value':x,'uid':"{{uid}}"}
+    socket.send(JSON.stringify({data}));
+        //console.log($('input[name="smiley"]:checked').val());
+}
+
+function sendChatViaSocket(x){
+    data = {'type':'chat','message':x,'user':'{{username}}'}
+    socket.send(JSON.stringify({data}));
+}
+
 
 console.log('{{request.site.domain}}',' {{request.site.name}}')
 
@@ -214,7 +168,7 @@ function addDots(players){
         arrayRotate(x,N-idx);
 
 
-       var pi = Math.PI, backR = 250, frontR = 30, radius = 180;
+       var pi = Math.PI, backR = 350, frontR = 30, radius = 230;
 
         $('.back').width(backR * 2).height(backR * 2);
         let iter =0;
@@ -228,7 +182,7 @@ function addDots(players){
                  textAlign:"center",
             });
             var randomColor = '#'+ ('000000' + Math.floor(Math.random()*16777215).toString(16)).slice(-6);
-            s.append('<span style="font-size: 24px; color:'+randomColor+'"'+'><i data-unique-id="' +x[iter][1] +'" class="fas fa-user fa-lg"></i></span>');
+            s.append('<span style="font-size: 24px; color:'+randomColor+'"'+'><div class="imoji" data-unique-id="imoji' +x[iter][1] +'"></div><i data-unique-id="' +x[iter][1] +'" class="fas fa-user fa-lg"></i></span>');
             s.append('<p data-unique-id="' + x[iter][1]+'" >'+x[iter][0]+'</p>');
             //console.log(s);
             iter++;
@@ -462,7 +416,7 @@ function ShowCards(){
             alert("Kya hag raha hai bhai!!");
             return;
         }
-
+         $('#play').hide();
         let folded = false;
         let picked = checkedRadioboxesValues;
         if(checkedRadioboxesValues==='folded'){
@@ -501,100 +455,22 @@ function ShowCards(){
 
         var room_code = '{{room_code}}'
         var username = '{{username}}'
-        var player = username.charAt(0)
-
-        let socket = new WebSocket('wss://{{request.site.domain}}/ws/game/' +room_code)
-
-        let gameState = ["","","","","","","","",""]
-
-        let elementArray = document.querySelectorAll('.space')
-
-        elementArray.forEach(function(elem){
-            elem.addEventListener("click" , function (event){
-                setText(event.path[0].getAttribute('data-cell-index') , player)
-            })
-        })
 
 
-        function checkGameEnd(){
-            var count = 0;
-            gameState.map((game)=>{
-                if(game != ""){
-                    count++;
-                }
-            })
-
-            if(count >= 9){
-                var data = {'type' : 'over'}
-                socket.send(JSON.stringify({data}))
-                swal("Good over!" , "Game end no one won" , "warning")   
-            }
-        }
-
-        function checkWon(value , player){
-            var won = false;
-
-            if(gameState[0] === value && gameState[1] == value && gameState[2] == value){
-                won = true;
-            }else if(gameState[3] === value && gameState[4] == value && gameState[5] == value){
-                won = true
-            }else if(gameState[6] === value && gameState[7] == value && gameState[8] == value){
-                won = true
-            }
-            else if(gameState[0] === value && gameState[3] == value && gameState[6] == value){
-                won = true
-            }
-            else if(gameState[1] === value && gameState[4] == value && gameState[7] == value){
-                won = true
-            }else if(gameState[2] === value && gameState[5] == value && gameState[8] == value){
-                won = true
-            }
-            else if(gameState[0] === value && gameState[4] == value && gameState[8] == value){
-                won = true
-            }
-            else if(gameState[2] === value && gameState[4] == value && gameState[6] == value){
-                won = true
-            }
-
-            if(won){
-                var data = {'type' : 'end' , 'player' : player}
-                socket.send(JSON.stringify({data}))
-                swal("Good job!" , "You won" , "success")
-            }
-
-            checkGameEnd();
-
-        }
+        let socket = new WebSocket('ws://{{request.site.domain}}/ws/game/' +room_code)
 
 
 
-        function setText(index , value){
-            var data = {
-                'player' : player,
-                'index' : index,
-                'type' : 'running'
-            }
-
-            
-
-            if(gameState[parseInt(index)] == ""){
-            gameState[parseInt(index)] = value
-            elementArray[parseInt(index)].innerHTML = value
-            
-            socket.send(JSON.stringify({
-                data
-            }))
-            checkWon(value , player )
-            }else{
-                alert("You cannot fill this space")
-            }
-        }
 
 
-        function setAnotherUserText(index , value){
-            gameState[parseInt(index)] = value
-            elementArray[parseInt(index)].innerHTML = value
-        }
+
+
+
+
+
+
+
+
 
 
 
@@ -631,8 +507,6 @@ function ShowCards(){
 
                 //swal("Game over!" , "Game end no one won" , "warning")
                 return;
-            }else if(data.payload.type == 'running' &&  data.payload.player !== player){
-                setAnotherUserText(data.payload.index , data.payload.player)
             }
             else if(data.payload.type == 'show'){
                 $('#'+data.payload.button).show();
@@ -658,6 +532,32 @@ function ShowCards(){
                     $('#start').show();
                 }
             }
+             else if(data.payload.type == 'smiley'){
+                //console.log(data.payload.value);
+                ancestor = $('div[data-unique-id="imoji'+ data.payload.uid+'"]');
+                //console.log(ancestor);
+                var d = '<img class="visible-imoji" src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/'+data.payload.value+'.png" alt="Alien" width="75" height="75" />';
+                //console.log(d);
+                ancestor.html(d);
+                setTimeout(function () {
+                   ancestor.html("");
+                }, 5000);
+
+
+            }
+            else if(data.payload.type == 'chat'){
+                 var messagesContainer = $('.messages');
+
+                messagesContainer.append([
+                    '<li class="self"><b>'+data.payload.user+'</b>:&nbsp  '+data.payload.message+'</li>'].join(''));
+                messagesContainer.finish().animate({
+                    scrollTop: messagesContainer.prop("scrollHeight")
+                }, 250);
+
+
+
+            }
+
 
 
 

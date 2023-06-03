@@ -1,0 +1,106 @@
+    @import url("https://fonts.googleapis.com/css?family=Catamaran:200");
+    @import url("https://fonts.googleapis.com/css?family=Quicksand");
+
+
+
+   .back {
+    background-color: #919191;
+    border-radius: 50%;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+
+}
+
+.front {
+    position: absolute;
+    border-radius: 50%;
+    //background-color: red;
+    font-size: 12px;
+
+}
+
+
+
+.cc-selector input{
+    margin:0;padding:0;
+    -webkit-appearance:none;
+       -moz-appearance:none;
+            appearance:none;
+}
+
+
+label {
+  padding: 10px;
+  display: block;
+  position: relative;
+  margin: 10px;
+  cursor: pointer;
+}
+
+label:before {
+  background-color: white;
+  color: white;
+  content: " ";
+  display: block;
+  border-radius: 50%;
+  border: 1px solid grey;
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: 25px;
+  height: 25px;
+  text-align: center;
+  line-height: 28px;
+  transition-duration: 0.4s;
+  transform: scale(0);
+}
+
+label img {
+  transition-duration: 0.2s;
+  transform-origin: 50% 50%;
+}
+:checked + label:before {
+  content: "✓";
+  background-color: green;
+  transform: scale(1);
+}
+
+
+
+.cc-selector input:active +.drinkcard-cc{opacity: .9;}
+.cc-selector input:checked +.drinkcard-cc{
+    -webkit-filter: none;
+       -moz-filter: none;
+            filter: none;
+}
+
+.drinkcard-cc{
+    cursor:pointer;
+    display:inline-block;
+    width:100px;height:70px;
+    -webkit-transition: all 100ms ease-in;
+       -moz-transition: all 100ms ease-in;
+            transition: all 100ms ease-in;
+    -webkit-filter: brightness(1) grayscale(0.2) opacity(.7);
+       -moz-filter: brightness(1) grayscale(0.2) opacity(.7);
+            filter: brightness(1) grayscale(0.2) opacity(.7);
+}
+.drinkcard-cc:hover{
+    -webkit-filter: brightness(1.8) grayscale(.0) opacity(.9);
+       -moz-filter: brightness(1.8) grayscale(.0) opacity(.9);
+            filter: brightness(1.8) grayscale(.0) opacity(.9);
+}
+
+.table-card-holder{
+        position: absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%, -50%);
+}
+
+.smiley{
+     cursor:pointer;
+    display:inline-block;
+    width:100px;height:70px;
+}

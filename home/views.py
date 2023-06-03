@@ -168,10 +168,11 @@ def play_chance(request):
 def play(request, room_code):
     uid = request.GET.get('uid')
     creator = False
+    username = Profile.objects.get(uid = uid)
     game = Game.objects.get(room_code=room_code)
     if game.game_creator == uid:
         creator = True
-    context = {'room_code': room_code, 'uid': uid, 'creator': creator}
+    context = {'room_code': room_code, 'uid': uid, 'creator': creator,'username':username.name}
     return render(request, 'play.html', context)
 
 

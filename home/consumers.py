@@ -1,4 +1,4 @@
-from channels.generic.websocket import WebsocketConsumer
+from channels.generic.websocket import WebsocketConsumer,AsyncWebsocketConsumer
 from asgiref.sync import async_to_sync
 import json
 from channels.layers import get_channel_layer

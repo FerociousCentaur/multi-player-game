@@ -151,3 +151,9 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = '/static/'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tictac.settings")
+
+import django
+django.setup()

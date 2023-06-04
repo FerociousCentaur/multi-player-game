@@ -3,7 +3,7 @@ from asgiref.sync import async_to_sync
 import json
 from channels.layers import get_channel_layer
 from collections import defaultdict
-from .models import Game
+# from .models import Game
 
 class GameRoom(WebsocketConsumer):
     # def __init__(self):
@@ -33,12 +33,12 @@ class GameRoom(WebsocketConsumer):
         )
         self.room_connection_counts[self.room_name] -= 1
         print("No of players", self.room_connection_counts[self.room_name])
-        if self.room_connection_counts[self.room_name]==0:
-            game = Game.objects.get(room_code=self.room_name)
-            players = game.players.all()
-            for player in players:
-                player.delete()
-            game.delete()
+        # if self.room_connection_counts[self.room_name]==0:
+        #     game = Game.objects.get(room_code=self.room_name)
+        #     players = game.players.all()
+        #     for player in players:
+        #         player.delete()
+        #     game.delete()
         
     def receive(self , text_data):
         #self.send(text_data="Hello world!")

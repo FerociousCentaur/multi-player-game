@@ -57,6 +57,8 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
+CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com', 'https://*.127.0.0.1']
+
 ROOT_URLCONF = 'tictac.urls'
 
 TEMPLATES = [

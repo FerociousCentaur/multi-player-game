@@ -458,7 +458,7 @@ function ShowCards(){
         var username = '{{username}}'
 
 
-        let socket = new WebSocket('ws://{{request.site.domain}}/ws/game/' +room_code)
+        let socket = new WebSocket('wss://{{request.site.domain}}/ws/game/' +room_code)
 
 
 
